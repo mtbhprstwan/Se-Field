@@ -23,19 +23,48 @@ export default function RegisterPage() {
     agreeToTerms: false,
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (formData.password !== formData.confirmPassword) {
-      alert("Password tidak cocok!")
-      return
-    }
-    if (!formData.agreeToTerms) {
-      alert("Harap setujui syarat dan ketentuan!")
-      return
-    }
-    // Implement registration logic
-    console.log("Register:", formData)
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+
+  if (formData.password !== formData.confirmPassword) {
+    alert("Password tidak cocok!")
+    return
   }
+
+  if (!formData.agreeToTerms) {
+    alert("Harap setujui syarat dan ketentuan!")
+    return
+  }
+
+  try {
+    const response = await fetch("https://be-sefield.vercel.app/api/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      alert(data.error || "Terjadi kesalahan saat registrasi.")
+      return
+    }
+
+    alert("Registrasi berhasil! Silakan login.")
+    window.location.href = "/login"
+  } catch (error) {
+    console.error("Error:", error)
+    alert("Terjadi kesalahan jaringan.")
+  }
+}
+
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))

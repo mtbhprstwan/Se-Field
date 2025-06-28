@@ -1,11 +1,16 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { MapPin, Eye, EyeOff } from "lucide-react"
@@ -14,11 +19,39 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Implement login logic
-    console.log("Login:", { email, password })
+    setLoading(true)
+
+    try {
+      const response = await fetch(
+        "https://be-sefield.vercel.app/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+          credentials: "include",
+        }
+      )
+
+      const data = await response.json()
+
+      if (response.ok) {
+        router.push("/dashboard")
+      } else {
+        alert(data.message || "Email atau password salah.")
+      }
+    } catch (error) {
+      console.error("Terjadi kesalahan:", error)
+      alert("Gagal menghubungi server.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -31,7 +64,9 @@ export default function LoginPage() {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">Masuk ke SeField</CardTitle>
-          <CardDescription>Masukkan email dan password untuk mengakses akun Anda</CardDescription>
+          <CardDescription>
+            Masukkan email dan password untuk mengakses akun Anda
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -73,17 +108,27 @@ export default function LoginPage() {
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-blue-600 hover:underline"
+              >
                 Lupa password?
               </Link>
             </div>
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-              Masuk
+            <Button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={loading}
+            >
+              {loading ? "Memproses..." : "Masuk"}
             </Button>
           </form>
           <div className="mt-6 text-center text-sm">
             Belum punya akun?{" "}
-            <Link href="/register" className="text-blue-600 hover:underline font-medium">
+            <Link
+              href="/register"
+              className="text-blue-600 hover:underline font-medium"
+            >
               Daftar sekarang
             </Link>
           </div>
